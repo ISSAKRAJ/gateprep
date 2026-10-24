@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GATE CS 2027 Command Center | 104-Day Study Tracker</title>
+  <meta name="description" content="Ultra-modern dark mode study tracker for GATE CS 2027. Track 104 days plan, daily syllabus, PYQs, aptitude, mock exams, and mistake log.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Background Glow & Grid -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+    
+    <!-- Top Navigation & Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <div class="logo-icon">
+            <span class="pulse-dot"></span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <div class="title-row">
+              <span class="brand-title">GATE CS 2027</span>
+              <span class="badge-phase-pill">104-Day Master Tracker</span>
+            </div>
+            <p class="subtitle">IIT Madras CS Paper • 25 Oct 2026 → 5 Feb 2027</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Exam Countdown -->
+      <div class="countdown-widget" id="examCountdown">
+        <div class="countdown-label">
+          <span class="live-dot"></span> EXAM COUNTDOWN (FEB 6, 2027)
+        </div>
+        <div class="countdown-units">
+          <div class="unit-box"><span id="cdDays" class="unit-val">104</span><span class="unit-lbl">DAYS</span></div>
+          <span class="unit-sep">:</span>
+          <div class="unit-box"><span id="cdHours" class="unit-val">21</span><span class="unit-lbl">HRS</span></div>
+          <span class="unit-sep">:</span>
+          <div class="unit-box"><span id="cdMins" class="unit-val">19</span><span class="unit-lbl">MIN</span></div>
+          <span class="unit-sep">:</span>
+          <div class="unit-box"><span id="cdSecs" class="unit-val">04</span><span class="unit-lbl">SEC</span></div>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-right">
+        <button id="btnJumpToday" class="btn btn-primary-glow" title="Go to today's schedule">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Day 1 (Today)</span>
+        </button>
+        <button id="btnQuickPomodoro" class="btn btn-glass" title="Toggle Pomodoro Timer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="7"></circle>
+            <polyline points="12 9 12 12 13.5 13.5"></polyline>
+            <path d="M16.51 17.35l-.35.85A2 2 0 0 1 14.3 19.5H9.7a2 2 0 0 1-1.86-1.3l-.35-.85"></path>
+          </svg>
+          <span>Focus Mode</span>
+        </button>
+        <div class="dropdown">
+          <button id="btnDataMenu" class="btn btn-icon" title="Data & Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <div class="dropdown-content" id="dataDropdown">
+            <button id="btnExportJSON">📥 Export JSON Backup</button>
+            <button id="btnExportCSV">📊 Export Tracker to CSV</button>
+            <button id="btnImportJSON">📤 Import JSON Backup</button>
+            <input type="file" id="fileImport" accept=".json" style="display:none">
+            <hr class="dropdown-divider">
+            <button id="btnResetData" class="btn-danger-text">🔄 Reset to Excel Defaults</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Stats KPI Strip -->
+    <section class="kpi-strip">
+      <!-- 1. Progress -->
+      <div class="kpi-card" id="kpiProgressCard">
+        <div class="kpi-icon icon-cyan">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Plan Completed</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statPlanPercent">0.0%</span>
+            <span class="kpi-sub" id="statDaysDone">0 / 104 Days</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-cyan" id="barPlanPercent" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Study Hours -->
+      <div class="kpi-card">
+        <div class="kpi-icon icon-indigo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Hours Studied</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statActualHours">0.0</span>
+            <span class="kpi-sub">/ <span id="statPlannedHours">660</span> Hrs</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-indigo" id="barHoursPercent" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. PYQs Solved -->
+      <div class="kpi-card">
+        <div class="kpi-icon icon-emerald">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">PYQs Solved</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statPyqsSolved">0</span>
+            <span class="kpi-sub">Questions</span>
+          </div>
+          <div class="kpi-foot" id="statPyqRate">Target: 25+ daily</div>
+        </div>
+      </div>
+
+      <!-- 4. Aptitude Tracker -->
+      <div class="kpi-card">
+        <div class="kpi-icon icon-amber">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Aptitude Streak</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statAptitudeDone">0</span>
+            <span class="kpi-sub">/ 104 Days</span>
+          </div>
+          <div class="kpi-foot">30-60 min daily habit</div>
+        </div>
+      </div>
+
+      <!-- 5. Mock Average -->
+      <div class="kpi-card">
+        <div class="kpi-icon icon-purple">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 20V10M12 20V4M6 20v-6"></path>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Mock Performance</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statMockAvg">34.0</span>
+            <span class="kpi-sub">/ 100 Avg</span>
+          </div>
+          <div class="kpi-foot"><span class="badge-target">Aim: 60+ for Top 1000</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-tabs-nav">
+      <div class="tabs-list">
+        <button class="tab-btn active" data-tab="trackerTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>104-Day Tracker</span>
+          <span class="tab-counter" id="trackerTotalCount">104</span>
+        </button>
+
+        <button class="tab-btn" data-tab="subjectsTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Subject Progress</span>
+          <span class="tab-counter">11</span>
+        </button>
+
+        <button class="tab-btn" data-tab="weeklyTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+          <span>Weekly Milestones</span>
+          <span class="tab-counter">15 Wks</span>
+        </button>
+
+        <button class="tab-btn" data-tab="mocksTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+          <span>Mock Log</span>
+          <span class="tab-counter" id="mockTabCount">1</span>
+        </button>
+
+        <button class="tab-btn" data-tab="mistakesTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          <span>Mistake Notebook</span>
+          <span class="tab-counter" id="mistakeTabCount">1</span>
+        </button>
+
+        <button class="tab-btn" data-tab="syllabusTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Syllabus 2027 Changes</span>
+          <span class="tab-badge-new">IIT-M</span>
+        </button>
+
+        <button class="tab-btn" data-tab="pomodoroTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Study Pomodoro</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- TAB 1: 104-DAY TRACKER -->
+    <main class="tab-content active" id="trackerTab">
+      
+      <!-- Filter Bar -->
+      <div class="filter-glass-card">
+        <div class="filter-row-top">
+          <!-- Phase filter pills -->
+          <div class="phase-pills-scroller" id="phaseFilterGroup">
+            <button class="filter-pill active" data-phase="all">All Phases (104)</button>
+            <button class="filter-pill pill-p1" data-phase="Phase 1: Start">Phase 1: Start (8d)</button>
+            <button class="filter-pill pill-p2" data-phase="Phase 2: Exams">Phase 2: Exams (14d)</button>
+            <button class="filter-pill pill-p3" data-phase="Phase 3: Learn">Phase 3: Learn (42d)</button>
+            <button class="filter-pill pill-p4" data-phase="Phase 4: Practice">Phase 4: Practice (21d)</button>
+            <button class="filter-pill pill-p5" data-phase="Phase 5: Mocks">Phase 5: Mocks (14d)</button>
+            <button class="filter-pill pill-p6" data-phase="Phase 6: Final">Phase 6: Final (5d)</button>
+          </div>
+
+          <!-- Quick Today Jump Button -->
+          <button id="btnScrollToToday" class="btn btn-sm btn-outline-cyan">
+            🎯 Today: Day 1 (Oct 25)
+          </button>
+        </div>
+
+        <div class="filter-row-bottom">
+          <!-- Search tasks -->
+          <div class="search-input-wrapper">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="taskSearchInput" placeholder="Search tasks, topics (e.g., Pointers, Trees, Paging, Quine-McCluskey)...">
+          </div>
+
+          <!-- Subject Select -->
+          <div class="select-wrapper">
+            <select id="subjectSelectFilter">
+              <option value="all">All Subjects (17 categories)</option>
+            </select>
+          </div>
+
+          <!-- Status Select -->
+          <div class="select-wrapper">
+            <select id="statusSelectFilter">
+              <option value="all">All Statuses</option>
+              <option value="Done">Done (Completed)</option>
+              <option value="Partly done">Partly Done</option>
+              <option value="Missed">Missed</option>
+              <option value="Pending">Pending (Not Started)</option>
+            </select>
+          </div>
+
+          <!-- View Toggle -->
+          <div class="view-toggle">
+            <button id="viewModeTable" class="view-btn active" title="Table View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <button id="viewModeCards" class="view-btn" title="Card View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instruction Hint Banner -->
+      <div class="tracker-hint-banner">
+        <div class="hint-icon">💡</div>
+        <div class="hint-body">
+          <strong>Daily Habit:</strong> Fill your <em>Status</em>, <em>Aptitude</em>, <em>Actual Hrs</em>, and <em>PYQs Solved</em> every night before bed. Keep 30-60 min for General Aptitude daily.
+        </div>
+      </div>
+
+      <!-- Tracker Table Container -->
+      <div class="tracker-container" id="trackerTableWrapper">
+        <div class="table-responsive">
+          <table class="tracker-table" id="trackerTable">
+            <thead>
+              <tr>
+                <th class="th-day">Day</th>
+                <th class="th-date">Date</th>
+                <th class="th-phase">Phase</th>
+                <th class="th-subject">Subject / Focus</th>
+                <th class="th-task">Today's Tasks</th>
+                <th class="th-planned">Plan Hrs</th>
+                <th class="th-status">Status</th>
+                <th class="th-aptitude">Aptitude?</th>
+                <th class="th-actual">Actual Hrs</th>
+                <th class="th-pyqs">PYQs</th>
+                <th class="th-notes">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="trackerTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card Grid Container (Alternative View) -->
+      <div class="cards-grid" id="trackerCardsWrapper" style="display: none;">
+        <!-- Rendered dynamically -->
+      </div>
+    </main>
+
+    <!-- TAB 2: SUBJECT BREAKDOWN -->
+    <section class="tab-content" id="subjectsTab">
+      <div class="section-header">
+        <div>
+          <h2>Subject Mastery & Confidence Progress</h2>
+          <p class="section-sub">Track learning phase completion and your self-assessed mastery level (1-5 stars).</p>
+        </div>
+      </div>
+
+      <div class="subject-cards-grid" id="subjectCardsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: WEEKLY ROADMAP -->
+    <section class="tab-content" id="weeklyTab">
+      <div class="section-header">
+        <div>
+          <h2>15-Week Study Trajectory</h2>
+          <p class="section-sub">Planned vs Actual study hours week-by-week leading to the exam on Feb 6, 2027.</p>
+        </div>
+      </div>
+
+      <!-- Weekly Chart Card -->
+      <div class="glass-card mb-4">
+        <div class="card-header-row">
+          <h3>Weekly Hours Distribution</h3>
+          <span class="badge-cyan">660 Total Planned Hours</span>
+        </div>
+        <div class="weekly-chart-container" id="weeklyChartContainer">
+          <!-- Rendered as responsive SVG or CSS bars -->
+        </div>
+      </div>
+
+      <!-- Weekly Cards Grid -->
+      <div class="weekly-cards-grid" id="weeklyCardsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 4: MOCK TEST LOG -->
+    <section class="tab-content" id="mocksTab">
+      <div class="section-header">
+        <div>
+          <h2>Mock Exam Performance Tracker</h2>
+          <p class="section-sub">Target: 55-60+ marks out of 100 before the exam. Top-1000 CS rank usually requires 60+.</p>
+        </div>
+        <button class="btn btn-primary" id="btnOpenAddMockModal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Log New Mock Test
+        </button>
+      </div>
+
+      <!-- Mock Score Benchmark Banner -->
+      <div class="benchmark-grid">
+        <div class="bench-card">
+          <span class="bench-label">Mock Target Benchmark</span>
+          <div class="bench-val score-high">60+ / 100</div>
+          <span class="bench-desc">Estimated Rank &lt; 1000 for top IITs</span>
+        </div>
+        <div class="bench-card">
+          <span class="bench-label">Current Average Score</span>
+          <div class="bench-val" id="mockCurrentAvg">34.0</div>
+          <span class="bench-desc" id="mockCountDesc">1 mock recorded</span>
+        </div>
+        <div class="bench-card">
+          <span class="bench-label">Primary Mark Leakage</span>
+          <div class="bench-val leak-concept" id="primaryLeak">Concept Gap (12m)</div>
+          <span class="bench-desc">Followed by Silly Mistakes</span>
+        </div>
+      </div>
+
+      <!-- Mocks Table -->
+      <div class="glass-card mt-4">
+        <div class="table-responsive">
+          <table class="data-table" id="mocksTable">
+            <thead>
+              <tr>
+                <th>Mock #</th>
+                <th>Date</th>
+                <th>Score (/100)</th>
+                <th>Concept Gap</th>
+                <th>Silly Mistake</th>
+                <th>Time Pressure</th>
+                <th>Weak Topics to Fix</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="mocksTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: MISTAKE NOTEBOOK -->
+    <section class="tab-content" id="mistakesTab">
+      <div class="section-header">
+        <div>
+          <h2>Daily Mistake Notebook (Review 30 min daily)</h2>
+          <p class="section-sub">Record every wrong question from PYQs & Mocks. Reviewing errors is the fastest way to 65+ marks.</p>
+        </div>
+        <button class="btn btn-primary" id="btnOpenAddMistakeModal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Mistake Entry
+        </button>
+      </div>
+
+      <!-- Mistake Filters -->
+      <div class="mistake-filter-bar">
+        <div class="search-input-wrapper">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="mistakeSearchInput" placeholder="Search mistakes by topic, formula or notes...">
+        </div>
+        <select id="mistakeSubjectFilter">
+          <option value="all">All Subjects</option>
+        </select>
+        <select id="mistakeTypeFilter">
+          <option value="all">All Mistake Types</option>
+          <option value="Concept">Concept Gap</option>
+          <option value="Silly">Silly Mistake</option>
+          <option value="Calculation">Calculation Error</option>
+          <option value="Time">Time Pressure</option>
+        </select>
+        <select id="mistakeRevisedFilter">
+          <option value="all">Revision Status (All)</option>
+          <option value="No">Needs Revision (No)</option>
+          <option value="Yes">Revised (Yes)</option>
+        </select>
+      </div>
+
+      <!-- Mistake Cards / Table -->
+      <div class="mistakes-container" id="mistakesContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 6: SYLLABUS 2027 CHANGES -->
+    <section class="tab-content" id="syllabusTab">
+      <div class="section-header">
+        <div>
+          <h2>GATE CS 2027 Syllabus Changes (IIT Madras)</h2>
+          <p class="section-sub">Important official changes vs 2026. Do not waste time on removed topics!</p>
+        </div>
+      </div>
+
+      <div class="syllabus-grid" id="syllabusGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="glass-card mt-4 p-4">
+        <h4>Official Source & Verification</h4>
+        <p class="text-muted text-sm mt-2">
+          Source: Official GATE 2027 CS syllabus PDF (IIT Madras) as compared with the 2026 syllabus by prosyllabus.com. Always confirm updates at the official IIT Madras portal: <code>gate2027.iitm.ac.in</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- TAB 7: FOCUS POMODORO -->
+    <section class="tab-content" id="pomodoroTab">
+      <div class="pomodoro-wrapper">
+        <div class="pomodoro-card">
+          <div class="pomodoro-header">
+            <h3>GATE Deep Focus Timer</h3>
+            <p class="text-muted">Master your daily 4.5 - 8 hour study blocks with intervals.</p>
+          </div>
+
+          <!-- Presets -->
+          <div class="timer-presets">
+            <button class="preset-btn active" data-time="25">25m Focus</button>
+            <button class="preset-btn" data-time="50">50m Deep Session</button>
+            <button class="preset-btn" data-time="5">5m Break</button>
+            <button class="preset-btn" data-time="15">15m Long Break</button>
+          </div>
+
+          <!-- Circular Clock -->
+          <div class="clock-display">
+            <div class="time-readout" id="pomodoroTime">25:00</div>
+            <span class="timer-mode-tag" id="pomodoroMode">Focus Session</span>
+          </div>
+
+          <!-- Controls -->
+          <div class="pomodoro-controls">
+            <button id="btnTimerStart" class="btn btn-primary-glow btn-lg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Start Focus</span>
+            </button>
+            <button id="btnTimerPause" class="btn btn-glass btn-lg" style="display:none">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              <span>Pause</span>
+            </button>
+            <button id="btnTimerReset" class="btn btn-glass">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <!-- Log into Tracker -->
+          <div class="timer-log-box">
+            <button id="btnLogPomodoroToToday" class="btn btn-outline-cyan">
+              ⚡ Add Completed 25m (+0.4h) to Today's Actual Study Hours
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: ADD MOCK TEST -->
+  <div class="modal-backdrop" id="modalAddMock">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Log New Mock Exam</h3>
+        <button class="modal-close" id="btnCloseAddMock">&times;</button>
+      </div>
+      <form id="formAddMock">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mock #</label>
+              <input type="number" id="mockInputNumber" required min="1" value="2">
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="mockInputDate" required value="2026-10-25">
+            </div>
+            <div class="form-group">
+              <label>Score (/100)</label>
+              <input type="number" id="mockInputScore" required min="0" max="100" step="0.5" value="45">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Concept Gap (Marks lost)</label>
+              <input type="number" id="mockInputConcept" min="0" max="100" value="8">
+            </div>
+            <div class="form-group">
+              <label>Silly Mistake (Marks lost)</label>
+              <input type="number" id="mockInputSilly" min="0" max="100" value="5">
+            </div>
+            <div class="form-group">
+              <label>Time Pressure (Marks lost)</label>
+              <input type="number" id="mockInputTime" min="0" max="100" value="4">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Weak Topics to Fix</label>
+            <textarea id="mockInputWeak" rows="2" placeholder="e.g., Cache miss penalty, Paging multi-level, Graph BFS/DFS"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-glass" id="btnCancelAddMock">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Mock Result</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD MISTAKE -->
+  <div class="modal-backdrop" id="modalAddMistake">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Add Mistake Entry to Notebook</h3>
+        <button class="modal-close" id="btnCloseAddMistake">&times;</button>
+      </div>
+      <form id="formAddMistake">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="mistakeInputDate" required value="2026-10-25">
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <select id="mistakeInputSubject" required>
+                <option value="C + Data Structures">C + Data Structures</option>
+                <option value="Algorithms">Algorithms</option>
+                <option value="Discrete Maths">Discrete Maths</option>
+                <option value="Maths (Prob, LA, Calc)">Maths (Prob, LA, Calc)</option>
+                <option value="Theory of Computation">Theory of Computation</option>
+                <option value="Operating Systems">Operating Systems</option>
+                <option value="DBMS">DBMS</option>
+                <option value="Computer Networks">Computer Networks</option>
+                <option value="Computer Organization">Computer Organization</option>
+                <option value="Digital Logic">Digital Logic</option>
+                <option value="Compiler Design">Compiler Design</option>
+                <option value="General Aptitude">General Aptitude</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Topic</label>
+              <input type="text" id="mistakeInputTopic" required placeholder="e.g., AVL tree balance factor">
+            </div>
+            <div class="form-group">
+              <label>Source (Year / Mock)</label>
+              <input type="text" id="mistakeInputSource" placeholder="e.g., GATE 2021 / MadeEasy Mock 3">
+            </div>
+            <div class="form-group">
+              <label>Mistake Type</label>
+              <select id="mistakeInputType">
+                <option value="Concept">Concept</option>
+                <option value="Silly">Silly Mistake</option>
+                <option value="Calculation">Calculation</option>
+                <option value="Time Pressure">Time Pressure</option>
+                <option value="Formula">Forgot Formula</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>What Went Wrong?</label>
+            <textarea id="mistakeInputWrong" rows="2" required placeholder="Describe the misconception or error..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Correct Idea / Formula / Key Rule</label>
+            <textarea id="mistakeInputCorrect" rows="2" required placeholder="The correct approach or formula to memorize..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-glass" id="btnCancelAddMistake">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Mistake Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT NOTES -->
+  <div class="modal-backdrop" id="modalEditNotes">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="notesModalTitle">Day 1 Notes</h3>
+        <button class="modal-close" id="btnCloseEditNotes">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Today's Daily Notes & Key Observations</label>
+          <textarea id="notesModalTextarea" rows="4" placeholder="Write anything important about today's study, weak spots, or reminders..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-glass" id="btnCancelNotes">Close</button>
+        <button type="button" class="btn btn-primary" id="btnSaveNotes">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Script Files -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
