@@ -55,43 +55,222 @@
   }
 
   // -------------------------------------------------------------------------
-  // 2. EXAM COUNTDOWN ENGINE (Exam: Feb 6, 2027)
+  // 1.1 REAL-TIME DATE ENGINE & SCHEDULE ANALYSIS
   // -------------------------------------------------------------------------
-  function initExamCountdown() {
-    const examDate = new Date('2027-02-06T09:00:00+05:30').getTime();
+  function formatDateToYMD(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
 
-    function updateClock() {
-      const now = new Date().getTime();
-      const diff = examDate - now;
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return `${parseInt(parts[2], 10)} ${months[mIdx] || ''}`;
+    }
+    return dateStr;
+  }
 
-      if (diff <= 0) {
-        document.getElementById('examCountdown').innerHTML =
-          '<span class="unit-val" style="color:#10b981">EXAM DAY HAS ARRIVED! ALL THE BEST!</span>';
-        return;
-      }
+  function getActiveDateString() {
+    if (appState && appState.customSimulatedDate) {
+      return appState.customSimulatedDate;
+    }
+    return formatDateToYMD(new Date());
+  }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-      const dEl = document.getElementById('cdDays');
-      const hEl = document.getElementById('cdHours');
-      const mEl = document.getElementById('cdMins');
-      const sEl = document.getElementById('cdSecs');
-
-      if (dEl) dEl.textContent = String(days).padStart(2, '0');
-      if (hEl) hEl.textContent = String(hours).padStart(2, '0');
-      if (mEl) mEl.textContent = String(mins).padStart(2, '0');
-      if (sEl) sEl.textContent = String(secs).padStart(2, '0');
+  function getActiveTodayInfo() {
+    const activeDateStr = getActiveDateString();
+    const rows = (appState && appState.tracker) ? appState.tracker : [];
+    if (rows.length === 0) {
+      return { day: 1, date: activeDateStr, row: null, status: 'empty', isRealToday: !(appState && appState.customSimulatedDate) };
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
+    const firstDate = rows[0]['Date'];
+    const lastDate = rows[rows.length - 1]['Date'];
+
+    const exactRow = rows.find(r => r['Date'] === activeDateStr);
+    if (exactRow) {
+      return {
+        day: exactRow['Day'],
+        date: activeDateStr,
+        row: exactRow,
+        status: 'inside',
+        isRealToday: !(appState && appState.customSimulatedDate)
+      };
+    }
+
+    if (activeDateStr < firstDate) {
+      return {
+        day: 1,
+        date: firstDate,
+        row: rows[0],
+        status: 'before',
+        targetDate: activeDateStr,
+        isRealToday: !(appState && appState.customSimulatedDate)
+      };
+    }
+
+    return {
+      day: rows[rows.length - 1]['Day'],
+      date: lastDate,
+      row: rows[rows.length - 1],
+      status: 'after',
+      targetDate: activeDateStr,
+      isRealToday: !(appState && appState.customSimulatedDate)
+    };
+  }
+
+  function getSchedulePaceStats() {
+    const todayInfo = getActiveTodayInfo();
+    const currentDayNum = todayInfo.day;
+    const rows = (appState && appState.tracker) ? appState.tracker : [];
+    const totalDays = rows.length || 104;
+
+    const expectedDaysDoneBeforeToday = Math.max(0, currentDayNum - 1);
+
+    let actualDoneBeforeToday = 0;
+    let actualPartlyBeforeToday = 0;
+    let overdueUnloggedCount = 0;
+
+    rows.forEach(r => {
+      const d = r['Day'];
+      const st = r['Status'];
+      if (d < currentDayNum) {
+        if (st === 'Done') actualDoneBeforeToday++;
+        else if (st === 'Partly done') actualPartlyBeforeToday++;
+        else if (!st) overdueUnloggedCount++;
+      }
+    });
+
+    const todayStatus = todayInfo.row ? todayInfo.row['Status'] : null;
+    const isTodayDone = todayStatus === 'Done';
+    const isTodayPartial = todayStatus === 'Partly done';
+
+    const completedScore = actualDoneBeforeToday + (actualPartlyBeforeToday * 0.5) + (isTodayDone ? 1 : (isTodayPartial ? 0.5 : 0));
+    const paceDiff = completedScore - expectedDaysDoneBeforeToday;
+
+    let paceClass = 'pace-ontrack';
+    let paceText = '⚡ On Track';
+
+    if (paceDiff >= 1.5) {
+      paceClass = 'pace-ahead';
+      paceText = `🚀 Ahead (+${Math.round(paceDiff)}d)`;
+    } else if (paceDiff >= 0) {
+      paceClass = 'pace-ontrack';
+      paceText = '⚡ On Track';
+    } else if (paceDiff >= -1.5) {
+      paceClass = 'pace-behind';
+      paceText = '⚠️ 1 Day Behind';
+    } else {
+      paceClass = 'pace-critical';
+      paceText = `🚨 ${Math.abs(Math.round(paceDiff))} Days Behind`;
+    }
+
+    // Streak calculation (consecutive Done days up to today/yesterday)
+    let studyStreak = 0;
+    let checkDay = currentDayNum;
+    if (!isTodayDone) {
+      checkDay = currentDayNum - 1;
+    }
+    while (checkDay >= 1) {
+      const r = rows.find(x => x['Day'] === checkDay);
+      if (r && r['Status'] === 'Done') {
+        studyStreak++;
+        checkDay--;
+      } else {
+        break;
+      }
+    }
+
+    const daysElapsed = currentDayNum;
+    const daysRemaining = Math.max(0, totalDays - daysElapsed);
+
+    return {
+      todayDayNum: currentDayNum,
+      todayDate: todayInfo.date,
+      todayRow: todayInfo.row,
+      todayStatus: todayInfo.status,
+      daysElapsed,
+      daysRemaining,
+      overdueUnloggedCount,
+      paceDiff,
+      paceClass,
+      paceText,
+      studyStreak
+    };
   }
 
   // -------------------------------------------------------------------------
-  // 3. GLOBAL KPI STATS COMPUTATION
+  // 2. LIVE CLOCK & EXAM COUNTDOWN ENGINE
+  // -------------------------------------------------------------------------
+  let lastKnownDateStr = '';
+
+  function initRealTimeClocks() {
+    const examDate = new Date('2027-02-06T09:00:00+05:30').getTime();
+
+    function updateTick() {
+      const now = new Date();
+
+      // 1. Real-time Live Clock
+      const timeEl = document.getElementById('liveClockTime');
+      const dateEl = document.getElementById('liveClockDate');
+      if (timeEl) {
+        timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      if (dateEl) {
+        if (appState && appState.customSimulatedDate) {
+          dateEl.innerHTML = `<span style="color:#fbbf24; font-weight:700;">Simulated: ${appState.customSimulatedDate}</span>`;
+        } else {
+          dateEl.textContent = now.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        }
+      }
+
+      // 2. Live Exam Countdown
+      const diff = examDate - now.getTime();
+      const examCdEl = document.getElementById('examCountdown');
+      if (diff <= 0) {
+        if (examCdEl) {
+          examCdEl.innerHTML = '<span class="unit-val" style="color:#10b981">EXAM DAY HAS ARRIVED! ALL THE BEST!</span>';
+        }
+      } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const dEl = document.getElementById('cdDays');
+        const hEl = document.getElementById('cdHours');
+        const mEl = document.getElementById('cdMins');
+        const sEl = document.getElementById('cdSecs');
+
+        if (dEl) dEl.textContent = String(days).padStart(2, '0');
+        if (hEl) hEl.textContent = String(hours).padStart(2, '0');
+        if (mEl) mEl.textContent = String(mins).padStart(2, '0');
+        if (sEl) sEl.textContent = String(secs).padStart(2, '0');
+      }
+
+      // 3. Midnight Rollover Detection (re-render when real-world day changes)
+      const currentDateStr = formatDateToYMD(now);
+      if (lastKnownDateStr && currentDateStr !== lastKnownDateStr && (!appState || !appState.customSimulatedDate)) {
+        lastKnownDateStr = currentDateStr;
+        console.log('Midnight rollover detected! Updating active today...');
+        renderAll();
+        showToast(`A new study day has begun: ${currentDateStr}!`);
+      } else if (!lastKnownDateStr) {
+        lastKnownDateStr = currentDateStr;
+      }
+    }
+
+    updateTick();
+    setInterval(updateTick, 1000);
+  }
+
+  // -------------------------------------------------------------------------
+  // 3. GLOBAL KPI STATS & REAL-TIME PACE COMPUTATION
   // -------------------------------------------------------------------------
   function updateGlobalStats() {
     const rows = appState.tracker;
@@ -132,6 +311,41 @@
     if (barPlanEl) barPlanEl.style.width = `${Math.min(100, completionPercent)}%`;
     if (daysDoneEl) daysDoneEl.textContent = `${daysDone} Done • ${daysPartly} Partial`;
 
+    // Real-Time Schedule Pace & Day KPI Card
+    const paceStats = getSchedulePaceStats();
+    const todayInfo = getActiveTodayInfo();
+
+    const todayDayBadgeEl = document.getElementById('statTodayDayBadge');
+    const daysRemainingEl = document.getElementById('statDaysRemaining');
+    const badgePaceStatusEl = document.getElementById('badgePaceStatus');
+
+    if (todayDayBadgeEl) todayDayBadgeEl.textContent = `Day ${paceStats.todayDayNum}`;
+    if (daysRemainingEl) daysRemainingEl.textContent = `/ 104 Days (${paceStats.daysRemaining}d left)`;
+    if (badgePaceStatusEl) {
+      badgePaceStatusEl.className = `badge-pace ${paceStats.paceClass}`;
+      badgePaceStatusEl.textContent = paceStats.paceText;
+    }
+
+    // Update Header Buttons Text & Tooltip
+    const btnJumpTodayText = document.getElementById('btnJumpTodayText');
+    const btnJumpToday = document.getElementById('btnJumpToday');
+    const btnScrollToToday = document.getElementById('btnScrollToToday');
+
+    if (btnJumpTodayText) {
+      if (appState && appState.customSimulatedDate) {
+        btnJumpTodayText.textContent = `Day ${paceStats.todayDayNum} (Simulated)`;
+      } else {
+        btnJumpTodayText.textContent = `Day ${paceStats.todayDayNum} (Today)`;
+      }
+    }
+    if (btnJumpToday) {
+      btnJumpToday.title = `Jump to Day ${paceStats.todayDayNum} (${todayInfo.date})`;
+    }
+    if (btnScrollToToday) {
+      btnScrollToToday.innerHTML = `🎯 Today: Day ${paceStats.todayDayNum} (${formatDisplayDate(todayInfo.date)})`;
+    }
+
+    // Study Hours
     const actHoursEl = document.getElementById('statActualHours');
     const planHoursEl = document.getElementById('statPlannedHours');
     const barHoursEl = document.getElementById('barHoursPercent');
@@ -142,11 +356,19 @@
       barHoursEl.style.width = `${hrsPct}%`;
     }
 
+    // PYQs
     const pyqsEl = document.getElementById('statPyqsSolved');
     if (pyqsEl) pyqsEl.textContent = pyqsSolved.toLocaleString();
 
+    // Aptitude & Habit Streak
     const aptEl = document.getElementById('statAptitudeDone');
+    const badgeStreakEl = document.getElementById('badgeStudyStreak');
     if (aptEl) aptEl.textContent = aptitudeDone;
+    if (badgeStreakEl) {
+      badgeStreakEl.textContent = paceStats.studyStreak > 0
+        ? `🔥 ${paceStats.studyStreak}-Day Streak`
+        : '🔥 Ready to streak!';
+    }
 
     // Mock stats
     const mocks = appState.mocks || [];
@@ -205,27 +427,53 @@
       });
     }
 
-    // Today scroll button
+    // Today scroll button & navigation
+    initTodayScrollButtons();
+  }
+
+  function scrollToDayRow(dayNum) {
+    const tBtn = document.querySelector('[data-tab="trackerTab"]');
+    if (tBtn) tBtn.click();
+
+    // Reset filters if active filter would hide this day
+    if (activeStatusFilter !== 'all' && activeStatusFilter !== 'today') {
+      activeStatusFilter = 'all';
+      const stSel = document.getElementById('statusSelectFilter');
+      if (stSel) stSel.value = 'all';
+      renderTracker();
+    }
+    if (activePhaseFilter !== 'all') {
+      const row = appState.tracker.find(r => r['Day'] === dayNum);
+      if (row && row['Phase'] !== activePhaseFilter) {
+        activePhaseFilter = 'all';
+        const pills = document.querySelectorAll('#phaseFilterGroup .filter-pill');
+        pills.forEach(p => p.classList.toggle('active', p.getAttribute('data-phase') === 'all'));
+        renderTracker();
+      }
+    }
+
+    setTimeout(() => {
+      const rowEl = document.getElementById(`tracker-row-${dayNum}`) || document.querySelector('.row-today');
+      if (rowEl) {
+        rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rowEl.style.transition = 'box-shadow 0.4s ease, background 0.4s ease';
+        rowEl.style.boxShadow = '0 0 35px rgba(0, 240, 255, 0.9)';
+        setTimeout(() => {
+          rowEl.style.boxShadow = '';
+        }, 2200);
+      }
+    }, 120);
+  }
+
+  function initTodayScrollButtons() {
     const btnJumpToday = document.getElementById('btnJumpToday');
     const btnScrollToToday = document.getElementById('btnScrollToToday');
     [btnJumpToday, btnScrollToToday].forEach(btn => {
       if (btn) {
-        btn.addEventListener('click', () => {
-          const tBtn = document.querySelector('[data-tab="trackerTab"]');
-          if (tBtn) tBtn.click();
-
-          setTimeout(() => {
-            const todayRow = document.querySelector('.row-today');
-            if (todayRow) {
-              todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              todayRow.style.transition = 'box-shadow 0.5s ease';
-              todayRow.style.boxShadow = '0 0 25px rgba(0, 240, 255, 0.6)';
-              setTimeout(() => {
-                todayRow.style.boxShadow = '';
-              }, 2000);
-            }
-          }, 100);
-        });
+        btn.onclick = () => {
+          const todayInfo = getActiveTodayInfo();
+          scrollToDayRow(todayInfo.day);
+        };
       }
     });
   }
@@ -272,6 +520,213 @@
     sel.value = currentVal;
   }
 
+  // -------------------------------------------------------------------------
+  // 5.1 TODAY'S LIVE COMMAND HUB
+  // -------------------------------------------------------------------------
+  function renderTodayCommandHub() {
+    const hub = document.getElementById('todayCommandHub');
+    if (!hub) return;
+
+    const todayInfo = getActiveTodayInfo();
+    const paceStats = getSchedulePaceStats();
+    const row = todayInfo.row;
+
+    if (!row) {
+      hub.style.display = 'none';
+      return;
+    }
+    hub.style.display = 'block';
+
+    const dayNum = todayInfo.day;
+    const status = row['Status'] || '';
+    const aptDone = String(row['Aptitude done?']).toLowerCase() === 'yes';
+    const phaseClass = getPhaseClass(row['Phase']);
+    const plannedHrs = row['Planned Hrs'] || 0;
+    const actualHrs = row['Actual Hrs'] !== null && row['Actual Hrs'] !== undefined ? row['Actual Hrs'] : '';
+    const pyqs = row['PYQs Solved'] !== null && row['PYQs Solved'] !== undefined ? row['PYQs Solved'] : '';
+
+    let statusBtnClass = 'status-select-btn';
+    let statusBtnText = 'Pending';
+    if (status === 'Done') {
+      statusBtnClass += ' is-done';
+      statusBtnText = '✓ Done';
+    } else if (status === 'Partly done') {
+      statusBtnClass += ' is-partial';
+      statusBtnText = '◐ Partial';
+    } else if (status === 'Missed') {
+      statusBtnClass += ' is-missed';
+      statusBtnText = '✗ Missed';
+    }
+
+    const livePrefix = appState && appState.customSimulatedDate ? 'SIMULATED DAY' : 'LIVE TODAY';
+
+    hub.innerHTML = `
+      <div class="hub-header">
+        <div class="hub-header-left">
+          <span class="hub-live-badge">
+            <span class="live-dot-green"></span>
+            <span>${livePrefix} • DAY ${dayNum} OF 104</span>
+          </span>
+          <span class="hub-date-badge">${row['Date']} (${row['Weekday']})</span>
+          <span class="badge-phase ${phaseClass}">${row['Phase']}</span>
+        </div>
+        <div class="hub-header-right">
+          <span class="badge-pace ${paceStats.paceClass}">${paceStats.paceText}</span>
+          <button id="hubBtnScrollTableRow" class="btn btn-sm btn-ghost" title="Highlight Day ${dayNum} in master table">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span>Scroll to Row</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hub-body">
+        <div class="hub-subject-row">
+          <span class="hub-subject-name">${row['Subject / Focus']}</span>
+          <span class="hub-hours-pill">Planned: ${plannedHrs} hrs</span>
+        </div>
+        <div class="hub-task-text">${formatTaskText(row["Today's Tasks"] || '')}</div>
+      </div>
+
+      <div class="hub-quick-bar">
+        <div class="hub-quick-group">
+          <span class="hub-quick-label">Today's Status:</span>
+          <button class="${statusBtnClass}" id="hubStatusBtn" title="Click to cycle: Pending → Done → Partial → Missed">
+            ${statusBtnText}
+          </button>
+        </div>
+
+        <div class="hub-quick-group">
+          <span class="hub-quick-label">General Aptitude (30-60m):</span>
+          <button class="aptitude-toggle ${aptDone ? 'checked' : ''}" id="hubAptitudeToggle" title="Mark today's aptitude complete">✓</button>
+          <span style="font-size:0.75rem; color:var(--text-muted);">${aptDone ? 'Completed' : 'Pending'}</span>
+        </div>
+
+        <div class="hub-quick-group">
+          <span class="hub-quick-label">Actual Hours:</span>
+          <div class="hub-num-stepper">
+            <input type="number" step="0.5" min="0" max="24" id="hubActualHoursInput" class="inline-input-num" value="${actualHrs}" placeholder="0.0">
+            <span style="font-size:0.75rem; color:var(--text-muted);">hrs</span>
+            <button class="btn-micro" id="hubBtnAddHour" title="Add 1 hour to today">+1h</button>
+          </div>
+        </div>
+
+        <div class="hub-quick-group">
+          <span class="hub-quick-label">PYQs:</span>
+          <div class="hub-num-stepper">
+            <input type="number" min="0" max="200" id="hubPyqsInput" class="inline-input-num" value="${pyqs}" placeholder="0">
+            <span style="font-size:0.75rem; color:var(--text-muted);">solved</span>
+            <button class="btn-micro" id="hubBtnAddPyq" title="Add 5 PYQs to today">+5</button>
+          </div>
+        </div>
+
+        <div class="hub-quick-group">
+          <button class="btn btn-sm btn-glass" id="hubBtnNotes">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>${row['Notes'] ? 'Edit Note' : 'Add Note'}</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Bind event listeners for Hub controls
+    const hubStatusBtn = document.getElementById('hubStatusBtn');
+    if (hubStatusBtn) {
+      hubStatusBtn.onclick = () => {
+        const current = row['Status'];
+        if (!current) row['Status'] = 'Done';
+        else if (current === 'Done') row['Status'] = 'Partly done';
+        else if (current === 'Partly done') row['Status'] = 'Missed';
+        else row['Status'] = null;
+
+        if (row['Status'] === 'Done' && (!row['Actual Hrs'] || row['Actual Hrs'] === 0)) {
+          row['Actual Hrs'] = row['Planned Hrs'];
+        }
+
+        saveState(false);
+        renderTodayCommandHub();
+        renderTracker();
+      };
+    }
+
+    const hubAptitudeToggle = document.getElementById('hubAptitudeToggle');
+    if (hubAptitudeToggle) {
+      hubAptitudeToggle.onclick = () => {
+        const isYes = String(row['Aptitude done?']).toLowerCase() === 'yes';
+        row['Aptitude done?'] = isYes ? 'No' : 'Yes';
+        saveState(false);
+        renderTodayCommandHub();
+        renderTracker();
+      };
+    }
+
+    const hubActualHoursInput = document.getElementById('hubActualHoursInput');
+    if (hubActualHoursInput) {
+      const handleHrs = function() {
+        const val = this.value === '' ? null : parseFloat(this.value);
+        row['Actual Hrs'] = isNaN(val) ? null : val;
+        saveState(false);
+        renderTracker();
+      };
+      hubActualHoursInput.oninput = handleHrs;
+      hubActualHoursInput.onchange = handleHrs;
+    }
+
+    const hubBtnAddHour = document.getElementById('hubBtnAddHour');
+    if (hubBtnAddHour) {
+      hubBtnAddHour.onclick = () => {
+        const current = parseFloat(row['Actual Hrs']) || 0;
+        row['Actual Hrs'] = +(current + 1).toFixed(1);
+        saveState(false);
+        renderTodayCommandHub();
+        renderTracker();
+        showToast(`Added +1h to Day ${dayNum} (Total: ${row['Actual Hrs']}h)`);
+      };
+    }
+
+    const hubPyqsInput = document.getElementById('hubPyqsInput');
+    if (hubPyqsInput) {
+      const handlePyqs = function() {
+        const val = this.value === '' ? null : parseInt(this.value, 10);
+        row['PYQs Solved'] = isNaN(val) ? null : val;
+        saveState(false);
+        renderTracker();
+      };
+      hubPyqsInput.oninput = handlePyqs;
+      hubPyqsInput.onchange = handlePyqs;
+    }
+
+    const hubBtnAddPyq = document.getElementById('hubBtnAddPyq');
+    if (hubBtnAddPyq) {
+      hubBtnAddPyq.onclick = () => {
+        const current = parseInt(row['PYQs Solved'], 10) || 0;
+        row['PYQs Solved'] = current + 5;
+        saveState(false);
+        renderTodayCommandHub();
+        renderTracker();
+        showToast(`Added +5 PYQs to Day ${dayNum} (Total: ${row['PYQs Solved']})`);
+      };
+    }
+
+    const hubBtnNotes = document.getElementById('hubBtnNotes');
+    if (hubBtnNotes) {
+      hubBtnNotes.onclick = () => openNotesModal(dayNum);
+    }
+
+    const hubBtnScrollTableRow = document.getElementById('hubBtnScrollTableRow');
+    if (hubBtnScrollTableRow) {
+      hubBtnScrollTableRow.onclick = () => scrollToDayRow(dayNum);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 5.2 104-DAY TRACKER TABLE & CARDS
+  // -------------------------------------------------------------------------
   function renderTracker() {
     const tbody = document.getElementById('trackerTableBody');
     const cardsWrapper = document.getElementById('trackerCardsWrapper');
@@ -280,6 +735,7 @@
     tbody.innerHTML = '';
     cardsWrapper.innerHTML = '';
 
+    const todayInfo = getActiveTodayInfo();
     const query = searchQuery.trim().toLowerCase();
 
     const filteredRows = appState.tracker.filter(row => {
@@ -291,12 +747,25 @@
       if (activeSubjectFilter !== 'all' && row['Subject / Focus'] !== activeSubjectFilter) {
         return false;
       }
+
       // Status filter
-      const st = row['Status'] || 'Pending';
+      const dayNum = row['Day'];
+      const isToday = (dayNum === todayInfo.day);
+      const isPast = (dayNum < todayInfo.day);
+      const isOverdue = isPast && (!row['Status'] || row['Status'] === 'Pending');
+
       if (activeStatusFilter !== 'all') {
-        if (activeStatusFilter === 'Pending' && row['Status'] !== null && row['Status'] !== '') return false;
-        if (activeStatusFilter !== 'Pending' && row['Status'] !== activeStatusFilter) return false;
+        if (activeStatusFilter === 'today') {
+          if (!isToday) return false;
+        } else if (activeStatusFilter === 'overdue') {
+          if (!isOverdue) return false;
+        } else if (activeStatusFilter === 'Pending') {
+          if (row['Status'] !== null && row['Status'] !== '') return false;
+        } else {
+          if (row['Status'] !== activeStatusFilter) return false;
+        }
       }
+
       // Search query
       if (query) {
         const taskText = (row["Today's Tasks"] || '').toLowerCase();
@@ -324,7 +793,9 @@
 
     filteredRows.forEach(row => {
       const dayNum = row['Day'];
-      const isToday = (dayNum === 1); // Day 1 = Oct 25, 2026
+      const isToday = (dayNum === todayInfo.day);
+      const isPast = (dayNum < todayInfo.day);
+      const isOverdue = isPast && (!row['Status'] || row['Status'] === 'Pending');
       const status = row['Status'] || '';
       const aptDone = (String(row['Aptitude done?']).toLowerCase() === 'yes');
       const phaseClass = getPhaseClass(row['Phase']);
@@ -334,6 +805,7 @@
       if (status === 'Done') rowStatusClass = 'row-done';
       else if (status === 'Partly done') rowStatusClass = 'row-partly';
       else if (status === 'Missed') rowStatusClass = 'row-missed';
+      if (isOverdue) rowStatusClass += ' row-overdue';
       if (isToday) rowStatusClass += ' row-today';
 
       // Status button styling
@@ -359,6 +831,7 @@
         <td class="cell-day">
           Day ${dayNum}
           ${isToday ? '<span class="today-pill-tag">TODAY</span>' : ''}
+          ${isOverdue ? '<span class="badge-overdue-tag">OVERDUE</span>' : ''}
         </td>
         <td class="cell-date">
           <div>${row['Date'] || ''}</div>
@@ -409,12 +882,13 @@
 
       // --- CARD VIEW ITEM ---
       const card = document.createElement('div');
-      card.className = `day-card ${isToday ? 'card-today' : ''} ${rowStatusClass}`;
+      card.className = `day-card ${isToday ? 'card-today' : ''} ${isOverdue ? 'card-overdue' : ''} ${rowStatusClass}`;
       card.innerHTML = `
         <div class="day-card-header">
           <div>
             <span class="day-card-day">Day ${dayNum}</span>
             ${isToday ? '<span class="today-pill-tag">TODAY</span>' : ''}
+            ${isOverdue ? '<span class="badge-overdue-tag">OVERDUE</span>' : ''}
             <div class="day-card-date">${row['Date']} (${row['Weekday']})</div>
           </div>
           <span class="badge-phase ${phaseClass}">${row['Phase']}</span>
@@ -456,6 +930,8 @@
   }
 
   function bindTrackerRowEvents() {
+    const todayInfo = getActiveTodayInfo();
+
     // 1. Status Cycle Click
     document.querySelectorAll('.status-select-btn').forEach(btn => {
       btn.onclick = function (e) {
@@ -478,6 +954,7 @@
 
         saveState(false);
         renderTracker();
+        if (day === todayInfo.day) renderTodayCommandHub();
       };
     });
 
@@ -494,6 +971,7 @@
 
         saveState(false);
         renderTracker();
+        if (day === todayInfo.day) renderTodayCommandHub();
       };
     });
 
@@ -507,6 +985,7 @@
         const val = this.value === '' ? null : parseFloat(this.value);
         row['Actual Hrs'] = isNaN(val) ? null : val;
         saveState(false);
+        if (day === todayInfo.day) renderTodayCommandHub();
       };
       inp.onchange = handleHrs;
       inp.oninput = handleHrs;
@@ -522,6 +1001,7 @@
         const val = this.value === '' ? null : parseInt(this.value);
         row['PYQs Solved'] = isNaN(val) ? null : val;
         saveState(false);
+        if (day === todayInfo.day) renderTodayCommandHub();
       };
       inp.onchange = handlePyqs;
       inp.oninput = handlePyqs;
@@ -686,14 +1166,17 @@
       const daysDone = matchingRows.filter(r => r['Status'] === 'Done').length;
       const pyqs = matchingRows.reduce((acc, r) => acc + (parseInt(r['PYQs Solved']) || 0), 0);
 
+      const activeDateStr = getActiveDateString();
+      const isCurrentWeek = (activeDateStr >= w.week_starting && activeDateStr < formatDateToYMD(endDate));
+
       // --- BAR CHART ITEM ---
       const plannedHeight = (w.planned_hrs / maxPlanned) * 140;
       const actualHeight = Math.min(140, (actualHrs / maxPlanned) * 140);
 
       const barGroup = document.createElement('div');
-      barGroup.className = 'chart-bar-group';
+      barGroup.className = `chart-bar-group ${isCurrentWeek ? 'bar-group-current' : ''}`;
       barGroup.innerHTML = `
-        <div class="chart-bars-wrap" title="Week ${idx + 1}: ${w.planned_hrs}h planned, ${actualHrs.toFixed(1)}h actual">
+        <div class="chart-bars-wrap" title="Week ${idx + 1}: ${w.planned_hrs}h planned, ${actualHrs.toFixed(1)}h actual ${isCurrentWeek ? '(Active Week)' : ''}">
           <div class="bar-planned" style="height: ${Math.max(4, plannedHeight)}px;"></div>
           <div class="bar-actual" style="height: ${Math.max(actualHrs > 0 ? 4 : 0, actualHeight)}px;"></div>
         </div>
@@ -703,10 +1186,13 @@
 
       // --- CARD ITEM ---
       const card = document.createElement('div');
-      card.className = 'week-card';
+      card.className = `week-card ${isCurrentWeek ? 'week-current' : ''}`;
       card.innerHTML = `
         <div class="week-card-top">
-          <span class="week-title">Week ${idx + 1}</span>
+          <div style="display:flex; align-items:center;">
+            <span class="week-title">Week ${idx + 1}</span>
+            ${isCurrentWeek ? '<span class="badge-current-week">⚡ Current Week</span>' : ''}
+          </div>
           <span class="week-date">${w.week_starting}</span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
@@ -1122,13 +1608,15 @@
     // Log to Today's Hours
     if (btnLog) {
       btnLog.onclick = () => {
-        const todayRow = appState.tracker.find(r => r['Day'] === 1);
+        const todayInfo = getActiveTodayInfo();
+        const todayRow = todayInfo.row;
         if (todayRow) {
           const current = parseFloat(todayRow['Actual Hrs']) || 0;
           const addedHours = +(timerSessionMinutes / 60).toFixed(2);
           todayRow['Actual Hrs'] = +(current + addedHours).toFixed(2);
-          saveState(true, `Logged +${addedHours}h to Day 1 (Total: ${todayRow['Actual Hrs']}h)`);
+          saveState(true, `Logged +${addedHours}h to Day ${todayRow['Day']} (${todayRow['Date']}) (Total: ${todayRow['Actual Hrs']}h)`);
           renderTracker();
+          renderTodayCommandHub();
         }
       };
     }
@@ -1249,6 +1737,100 @@
     // Reset Data
     const btnReset = document.getElementById('btnResetData');
     if (btnReset) btnReset.onclick = resetState;
+
+    // Real-Time Mode Buttons in Data Dropdown
+    const btnSetLive = document.getElementById('btnSetLiveToday');
+    if (btnSetLive) {
+      btnSetLive.onclick = () => {
+        appState.customSimulatedDate = null;
+        saveState(false);
+        renderAll();
+        showToast('Switched to Live Real-Time Clock!');
+      };
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 13.1 DATE SIMULATOR / SELECTOR MODAL
+  // -------------------------------------------------------------------------
+  function initDateSimulatorModal() {
+    const modal = document.getElementById('modalDateSimulator');
+    const btnOpen = document.getElementById('btnOpenSimModal');
+    const btnClose = document.getElementById('btnCloseDateSimulator');
+    const btnCancel = document.getElementById('btnCancelDateSimulator');
+    const btnApply = document.getElementById('btnApplyDateSimulator');
+
+    const btnModeLive = document.getElementById('btnModeLiveAuto');
+    const btnModeCustom = document.getElementById('btnModeCustom');
+    const groupCustom = document.getElementById('groupCustomDateSection');
+    const inputDate = document.getElementById('inputCustomDateVal');
+
+    const btnQuickDay1 = document.getElementById('btnQuickPickDay1');
+    const btnQuickToday = document.getElementById('btnQuickPickToday');
+    const btnQuickDay10 = document.getElementById('btnQuickPickDay10');
+    const btnQuickDay30 = document.getElementById('btnQuickPickDay30');
+
+    if (!modal) return;
+
+    function openModal() {
+      const activeDate = getActiveDateString();
+      if (inputDate) inputDate.value = activeDate;
+
+      if (appState && appState.customSimulatedDate) {
+        if (btnModeCustom) btnModeCustom.className = 'btn btn-sm btn-primary-glow';
+        if (btnModeLive) btnModeLive.className = 'btn btn-sm btn-glass';
+        if (groupCustom) groupCustom.style.display = 'block';
+      } else {
+        if (btnModeLive) btnModeLive.className = 'btn btn-sm btn-primary-glow';
+        if (btnModeCustom) btnModeCustom.className = 'btn btn-sm btn-glass';
+      }
+      modal.classList.add('show');
+    }
+
+    function closeModal() {
+      modal.classList.remove('show');
+    }
+
+    if (btnOpen) btnOpen.onclick = openModal;
+    if (btnClose) btnClose.onclick = closeModal;
+    if (btnCancel) btnCancel.onclick = closeModal;
+
+    if (btnModeLive) {
+      btnModeLive.onclick = () => {
+        btnModeLive.className = 'btn btn-sm btn-primary-glow';
+        if (btnModeCustom) btnModeCustom.className = 'btn btn-sm btn-glass';
+        appState.customSimulatedDate = null;
+        saveState(false);
+        renderAll();
+        showToast('Switched to Live Real-Time System Clock!');
+        closeModal();
+      };
+    }
+
+    if (btnModeCustom) {
+      btnModeCustom.onclick = () => {
+        btnModeCustom.className = 'btn btn-sm btn-primary-glow';
+        if (btnModeLive) btnModeLive.className = 'btn btn-sm btn-glass';
+        if (groupCustom) groupCustom.style.display = 'block';
+      };
+    }
+
+    if (btnQuickDay1 && inputDate) btnQuickDay1.onclick = () => { inputDate.value = '2026-10-25'; };
+    if (btnQuickToday && inputDate) btnQuickToday.onclick = () => { inputDate.value = formatDateToYMD(new Date()); };
+    if (btnQuickDay10 && inputDate) btnQuickDay10.onclick = () => { inputDate.value = '2026-11-03'; };
+    if (btnQuickDay30 && inputDate) btnQuickDay30.onclick = () => { inputDate.value = '2026-11-23'; };
+
+    if (btnApply) {
+      btnApply.onclick = () => {
+        if (inputDate && inputDate.value) {
+          appState.customSimulatedDate = inputDate.value;
+          saveState(false);
+          renderAll();
+          showToast(`Simulated active date set to: ${inputDate.value}!`);
+          closeModal();
+        }
+      };
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -1348,6 +1930,7 @@
   function renderAll() {
     updateGlobalStats();
     populateSubjectDropdown();
+    renderTodayCommandHub();
     renderTracker();
     renderSubjectCards();
     renderWeeklySection();
@@ -1358,10 +1941,11 @@
 
   function initApp() {
     loadState();
-    initExamCountdown();
+    initRealTimeClocks();
     initTabs();
     initFilterControls();
     initNotesModal();
+    initDateSimulatorModal();
     initAddMockModal();
     initAddMistakeModal();
     initPomodoro();

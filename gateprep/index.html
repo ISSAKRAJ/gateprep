@@ -39,30 +39,41 @@
         </div>
       </div>
 
-      <!-- Live Exam Countdown -->
-      <div class="countdown-widget" id="examCountdown">
-        <div class="countdown-label">
-          <span class="live-dot"></span> EXAM COUNTDOWN (FEB 6, 2027)
+      <!-- Header Center: Real-Time Live Clock & Exam Countdown -->
+      <div class="header-center">
+        <!-- Live Real-Time Clock Widget -->
+        <div class="live-clock-widget" id="liveClockWidget" title="Local System Real-Time Clock">
+          <div class="clock-label">
+            <span class="live-dot-green"></span> LIVE CLOCK
+          </div>
+          <div class="clock-display">
+            <span id="liveClockTime" class="clock-time">--:--:--</span>
+            <span id="liveClockDate" class="clock-date">Loading...</span>
+          </div>
         </div>
-        <div class="countdown-units">
-          <div class="unit-box"><span id="cdDays" class="unit-val">104</span><span class="unit-lbl">DAYS</span></div>
-          <span class="unit-sep">:</span>
-          <div class="unit-box"><span id="cdHours" class="unit-val">21</span><span class="unit-lbl">HRS</span></div>
-          <span class="unit-sep">:</span>
-          <div class="unit-box"><span id="cdMins" class="unit-val">19</span><span class="unit-lbl">MIN</span></div>
-          <span class="unit-sep">:</span>
-          <div class="unit-box"><span id="cdSecs" class="unit-val">04</span><span class="unit-lbl">SEC</span></div>
+
+        <!-- Live Exam Countdown -->
+        <div class="countdown-widget" id="examCountdown">
+          <div class="countdown-label">
+            <span class="live-dot"></span> EXAM COUNTDOWN (FEB 6, 2027)
+          </div>
+          <div class="countdown-units">
+            <div class="unit-box"><span id="cdDays" class="unit-val">101</span><span class="unit-lbl">DAYS</span></div>
+            <span class="unit-sep">:</span>
+            <div class="unit-box"><span id="cdHours" class="unit-val">11</span><span class="unit-lbl">HRS</span></div>
+            <span class="unit-sep">:</span>
+            <div class="unit-box"><span id="cdMins" class="unit-val">28</span><span class="unit-lbl">MIN</span></div>
+            <span class="unit-sep">:</span>
+            <div class="unit-box"><span id="cdSecs" class="unit-val">14</span><span class="unit-lbl">SEC</span></div>
+          </div>
         </div>
       </div>
 
       <!-- Header Actions -->
       <div class="header-right">
         <button id="btnJumpToday" class="btn btn-primary-glow" title="Go to today's schedule">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          <span>Day 1 (Today)</span>
+          <span class="pulse-dot-inline"></span>
+          <span id="btnJumpTodayText">Day 3 (Today)</span>
         </button>
         <button id="btnQuickPomodoro" class="btn btn-glass" title="Toggle Pomodoro Timer">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -73,13 +84,18 @@
           <span>Focus Mode</span>
         </button>
         <div class="dropdown">
-          <button id="btnDataMenu" class="btn btn-icon" title="Data & Settings">
+          <button id="btnDataMenu" class="btn btn-icon" title="Data, Date Settings & Backup">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
           </button>
           <div class="dropdown-content" id="dataDropdown">
+            <div class="dropdown-section-title">⏱ Real-Time Tracking</div>
+            <button id="btnSetLiveToday">● Auto Real-Time Clock</button>
+            <button id="btnOpenSimModal">🗓 Custom / Test Date...</button>
+            <hr class="dropdown-divider">
+            <div class="dropdown-section-title">💾 Backup & Data</div>
             <button id="btnExportJSON">📥 Export JSON Backup</button>
             <button id="btnExportCSV">📊 Export Tracker to CSV</button>
             <button id="btnImportJSON">📤 Import JSON Backup</button>
@@ -113,7 +129,27 @@
         </div>
       </div>
 
-      <!-- 2. Study Hours -->
+      <!-- 2. Real-Time Day & Schedule Pace -->
+      <div class="kpi-card" id="kpiPaceCard">
+        <div class="kpi-icon icon-cyan" style="background: rgba(0, 240, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Real-Time Day & Pace</span>
+          <div class="kpi-val-row">
+            <span class="kpi-val" id="statTodayDayBadge">Day 3</span>
+            <span class="kpi-sub" id="statDaysRemaining">/ 104 Days</span>
+          </div>
+          <div class="kpi-foot">
+            <span class="badge-pace pace-ontrack" id="badgePaceStatus">⚡ On Track</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Study Hours -->
       <div class="kpi-card">
         <div class="kpi-icon icon-indigo">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -133,7 +169,7 @@
         </div>
       </div>
 
-      <!-- 3. PYQs Solved -->
+      <!-- 4. PYQs Solved -->
       <div class="kpi-card">
         <div class="kpi-icon icon-emerald">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -150,7 +186,7 @@
         </div>
       </div>
 
-      <!-- 4. Aptitude Tracker -->
+      <!-- 5. Aptitude & Study Habit -->
       <div class="kpi-card">
         <div class="kpi-icon icon-amber">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -158,16 +194,18 @@
           </svg>
         </div>
         <div class="kpi-content">
-          <span class="kpi-label">Aptitude Streak</span>
+          <span class="kpi-label">Aptitude & Study Habit</span>
           <div class="kpi-val-row">
             <span class="kpi-val" id="statAptitudeDone">0</span>
             <span class="kpi-sub">/ 104 Days</span>
           </div>
-          <div class="kpi-foot">30-60 min daily habit</div>
+          <div class="kpi-foot" id="statStreakFoot">
+            <span class="badge-streak" id="badgeStudyStreak">🔥 0-Day Streak</span>
+          </div>
         </div>
       </div>
 
-      <!-- 5. Mock Average -->
+      <!-- 6. Mock Average -->
       <div class="kpi-card">
         <div class="kpi-icon icon-purple">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -260,6 +298,11 @@
     <!-- TAB 1: 104-DAY TRACKER -->
     <main class="tab-content active" id="trackerTab">
       
+      <!-- Today's Live Mission & Command Hub -->
+      <section class="today-command-hub" id="todayCommandHub">
+        <!-- Rendered dynamically by renderTodayCommandHub() -->
+      </section>
+
       <!-- Filter Bar -->
       <div class="filter-glass-card">
         <div class="filter-row-top">
@@ -276,7 +319,7 @@
 
           <!-- Quick Today Jump Button -->
           <button id="btnScrollToToday" class="btn btn-sm btn-outline-cyan">
-            🎯 Today: Day 1 (Oct 25)
+            🎯 Today: Day 3 (Oct 27)
           </button>
         </div>
 
@@ -300,7 +343,9 @@
           <!-- Status Select -->
           <div class="select-wrapper">
             <select id="statusSelectFilter">
-              <option value="all">All Statuses</option>
+              <option value="all">All Statuses (104 Days)</option>
+              <option value="today">⭐ Today's Active Day</option>
+              <option value="overdue">⚠️ Overdue / Unlogged Past Days</option>
               <option value="Done">Done (Completed)</option>
               <option value="Partly done">Partly Done</option>
               <option value="Missed">Missed</option>
@@ -719,7 +764,7 @@
   <div class="modal-backdrop" id="modalEditNotes">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 id="notesModalTitle">Day 1 Notes</h3>
+        <h3 id="notesModalTitle">Day Notes</h3>
         <button class="modal-close" id="btnCloseEditNotes">&times;</button>
       </div>
       <div class="modal-body">
@@ -731,6 +776,42 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-glass" id="btnCancelNotes">Close</button>
         <button type="button" class="btn btn-primary" id="btnSaveNotes">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REAL-TIME DATE SETTINGS / SIMULATION -->
+  <div class="modal-backdrop" id="modalDateSimulator">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Real-Time Day Settings & Simulation</h3>
+        <button class="modal-close" id="btnCloseDateSimulator">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.86rem; color:var(--text-secondary); line-height:1.5; margin-bottom:1rem;">
+          By default, this Command Center uses your <strong>Live System Clock</strong> to track real-time study days and calculate your schedule pace. You can also pick a specific day or date to test or review any schedule milestone.
+        </p>
+        <div class="form-group">
+          <label>Tracking Mode</label>
+          <div style="display:flex; gap:0.6rem; margin-top:0.4rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-sm btn-primary-glow" id="btnModeLiveAuto">● Live Real-Time Clock (Auto)</button>
+            <button type="button" class="btn btn-sm btn-glass" id="btnModeCustom">🗓 Custom / Test Date</button>
+          </div>
+        </div>
+        <div class="form-group" id="groupCustomDateSection" style="margin-top:1rem;">
+          <label>Select Date within 104-Day Schedule (25 Oct 2026 → 5 Feb 2027)</label>
+          <input type="date" id="inputCustomDateVal" min="2026-10-25" max="2027-02-06" class="form-input" style="width:100%; padding:0.5rem; background:rgba(10,15,29,0.8); border:1px solid var(--border-medium); border-radius:var(--radius-sm); color:#fff; font-family:var(--font-mono);">
+          <div style="margin-top:0.65rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-xs btn-glass" id="btnQuickPickDay1">Day 1 (25 Oct)</button>
+            <button type="button" class="btn btn-xs btn-glass" id="btnQuickPickToday">Today (Real-Time)</button>
+            <button type="button" class="btn btn-xs btn-glass" id="btnQuickPickDay10">Day 10 (3 Nov)</button>
+            <button type="button" class="btn btn-xs btn-glass" id="btnQuickPickDay30">Day 30 (23 Nov)</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-glass" id="btnCancelDateSimulator">Close</button>
+        <button type="button" class="btn btn-primary" id="btnApplyDateSimulator">Apply Date</button>
       </div>
     </div>
   </div>
